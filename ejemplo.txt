@@ -1,0 +1,17 @@
+
+int sumador(x ,int y)
+{
+int = 0;
+resultado  = 2 + y;
+°
+}
+
+int loop )
+{
+#
+for (i = 1;i < 20; i++)
+    {
+        L = temp;
+		resultado  = 2  y;
+    }
+}

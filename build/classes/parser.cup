@@ -1,0 +1,324 @@
+package scanner;
+import java.io.*;
+import java_cup.runtime.*; 
+import java.util.Stack;
+import java.util.ArrayList;
+import java.util.Collections;
+
+parser code
+{:
+	String X;
+	Stack<String> pila = new Stack<String>();
+	Semantico s = new Semantico();
+	boolean flagop = false;
+	int contador;
+	
+	public static void main(String args[]) throws Exception{
+		//new parser(new Yylex(new FileInputStream(args[0]))).parse();
+		new parser(new Yylex(System.in)).parse();
+	}
+	public void syntax_error(Symbol s){
+		String X =("Error sintactico en la linea " + (s.right + 1) + ". Se espera algo antes del token \"" + s.value + "\". \n");
+		try{
+			  // Create file 
+			  BufferedWriter out = new BufferedWriter(new FileWriter("error.txt", true));
+			  out.write(X);
+			  //Close the output stream
+			  out.close();
+			  }catch (Exception e){//Catch exception if any
+			  System.err.println("Error: " + e.getMessage());
+				}
+	}
+	
+	public  int InsTabla(String elem){
+        int num;
+        pila.push(elem);
+        num = pila.size()-1;
+        return num;
+    }
+	
+	public  String GetTabla(int num){
+        String ele;
+        ele = pila.get(num);
+        return ele;
+    }
+:}
+
+terminal String INT, VOID, IF, ELSE, WHILE, RETURN, READ, WRITE;
+terminal String INCREMENT, DECREMENT, EQUALS, GREATEREQUAL, GREATER, LESSEQUAL, LESS, NOTEQUAL, OR, AND, NOT, ASSIGN, ADDITION, SUBTRACTION, MULTIPLICATION, DIVISION, MODULO, LEFTPAR, RIGHTPAR, LEFTBRACKET, RIGHTBRACKET, SEMICOLON, COMMA;
+terminal String ENTERO;
+terminal String  FLOTANTE;
+terminal String ID, LISTSTRING, TRUE, FALSE;
+
+non terminal TipId, BrackTip, False, True, Ret_tok, Return, WhilePar, IfPar, LiteralPar, Literal_num, Condicion, Literal_id, Op_aritmeticos, CondicionTest, Write_tok, Read_tok, Lista_id, Read, Write, Err, Funciones_dos, And, Or, Not, Less, Greater, Eq, Noteq, Lesseq, Greatereq, Else, Coma, Op_Posfijo_Pos, Op_Posfijo_Neg, Rightbracket, Leftbracket, Rightpar, Leftpar, Assign, Semicolon,Oper_aritmeticas,  Expresion_arit_init, Expresion_arit, Op_PosfijaAritmetica, Op_Posfijo, Lista_parametros, Lista_var, Tipo, Literal_str, Literal_char, Funciones, Literal, Sentencia, While, Lista_sentencias, Programa, If_else, If, Condicion_and, Condicion_or, Condicion_logica, Condicion_not, Variables;
+
+precedence left error;
+precedence left INT, VOID, IF, ELSE, READ, WRITE;
+precedence left ADDITION, SUBTRACTION;
+precedence left MULTIPLICATION, DIVISION, MODULO;
+
+start with Programa;
+
+Programa ::= Variables Funciones
+			| Funciones
+			| {: System.out.println("Error sintactico en la sentencia"); :}
+			;
+
+Literal ::= Literal_num
+	| Literal_str
+	| Err
+	;
+
+Literal_num ::=	ENTERO:num {: int x = parser.InsTabla(num); parser.s.Cons(x,num); if (parser.flagop == true){parser.s.eval_binary(parser.GetTabla(x-2),parser.GetTabla(x-1),parser.GetTabla(x));};parser.flagop=false;:}
+	| FLOTANTE:num {: int x = parser.InsTabla(num); parser.s.Cons(x,num); if (parser.flagop == true){parser.s.eval_binary(parser.GetTabla(x-2),parser.GetTabla(x-1),parser.GetTabla(x));};parser.flagop=false;:}
+	;	
+	
+Semicolon ::= SEMICOLON:ele {: parser.InsTabla(ele); parser.s.Par(ele);:}
+	;
+
+Ret_tok ::= RETURN:ele {: parser.InsTabla(ele); parser.s.Par(ele);:}
+	;
+Assign ::= ASSIGN:ele {: parser.InsTabla(ele); parser.s.Par(ele);:}
+	;
+	
+False ::= FALSE:ele {: parser.InsTabla(ele); :}
+	;
+	
+True ::= TRUE:ele {: parser.InsTabla(ele); :}
+	;
+	
+Leftpar ::= LEFTPAR:ele {: parser.InsTabla(ele); parser.s.Par(ele);:}
+	;
+
+Rightpar ::= RIGHTPAR:ele {: parser.InsTabla(ele); parser.s.Par(ele); :}
+	;
+
+Leftbracket ::= LEFTBRACKET:ele {: parser.InsTabla(ele); parser.s.Par(ele);  :}
+	;
+
+Rightbracket ::= RIGHTBRACKET:ele {: parser.InsTabla(ele); parser.s.Par(ele);  :}
+	;		
+	
+Literal_str ::= LISTSTRING
+	;
+	
+Literal_id ::= ID:id {: int x = parser.InsTabla(id); parser.s.Var(x,id); if (parser.flagop == true){parser.s.eval_binary(parser.GetTabla(x-2),parser.GetTabla(x-1),parser.GetTabla(x));};parser.flagop=false;  :}
+	;
+
+Lista_id ::= Literal_id Coma Lista_id
+	| Literal_id
+	;
+	
+Coma ::= COMMA
+	;
+	
+Else ::= ELSE:ele {: parser.s.StartElse(parser.InsTabla(ele),ele);  :}
+	;
+
+	
+
+And ::= AND:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+	
+Or ::= OR:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+
+Not ::= NOT:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+
+Greater ::= GREATER:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+
+Less ::= LESS:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+	
+Greatereq ::= GREATEREQUAL:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+	
+Lesseq ::= LESSEQUAL:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+	
+Eq ::= EQUALS:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+
+Noteq ::= NOTEQUAL:op {: parser.InsTabla(op); parser.s.Par(op); :}
+	;
+
+Write_tok ::= WRITE
+	;
+
+Read_tok ::= READ
+	;
+	
+Variables ::= TipId Lista_var Assign Literal Semicolon Variables
+	| TipId Lista_var Semicolon Variables 
+	| 
+	;
+	
+TipId ::= INT:tip ID:id {: parser.InsTabla(tip);int x = parser.InsTabla(id); parser.s.Dec_Var(x,parser.GetTabla(x),parser.GetTabla(x-1));  :}
+	;
+
+Funciones ::= 	Tipo LiteralPar Lista_parametros Rightpar Leftbracket Variables Lista_sentencias BrackTip Funciones_dos
+	| Tipo LiteralPar Lista_parametros Rightpar Leftbracket Variables Lista_sentencias Rightbracket {: parser.s.FinFun(); :}
+	| Tipo LiteralPar  Rightpar Leftbracket Variables Lista_sentencias BrackTip Funciones_dos
+	| Tipo LiteralPar  Rightpar Leftbracket Variables Lista_sentencias Rightbracket {: parser.s.FinFun(); :}
+	| Tipo Literal_id Rightpar Err
+	| Err
+	;
+
+BrackTip ::= RIGHTBRACKET:ele2 INT:ele {: parser.InsTabla(ele2); parser.s.Par(ele2); parser.InsTabla(ele); parser.s.FinFun(); :}
+	| RIGHTBRACKET:ele2 VOID:ele {: parser.InsTabla(ele2); parser.s.Par(ele2); parser.InsTabla(ele); parser.s.FinFun(); :}
+	;
+	
+LiteralPar ::= ID:id LEFTPAR:ele {: int x = parser.InsTabla(id); parser.s.Fun(x,id,parser.GetTabla(x-1));parser.s.Par(ele); :}
+	;
+	
+Funciones_dos ::= 	LiteralPar Lista_parametros Rightpar Leftbracket Variables Lista_sentencias BrackTip Funciones_dos
+	| LiteralPar Lista_parametros Rightpar Leftbracket Variables Lista_sentencias Rightbracket {: parser.s.FinFun(); :}
+	| LiteralPar  Rightpar Leftbracket Variables Lista_sentencias BrackTip Funciones_dos
+	| LiteralPar  Rightpar Leftbracket Variables Lista_sentencias Rightbracket {: parser.s.FinFun(); :}
+	| Literal_id Rightpar Err
+	| Err
+	;
+
+Tipo ::= INT:ele {: parser.InsTabla(ele);  :}
+	| VOID:ele {: parser.InsTabla(ele);  :}
+	;
+
+
+Op_PosfijaAritmetica ::= Literal_num Op_Posfijo Semicolon
+	| Literal_char Op_Posfijo Semicolon
+	| Literal_id Op_Posfijo Semicolon
+	;
+
+Op_Posfijo ::= Op_Posfijo_Pos
+	| Op_Posfijo_Neg
+	;	 
+	
+Op_Posfijo_Pos ::= INCREMENT:op {: int x = parser.InsTabla(op); parser.s.Oper(x,op); parser.s.eval_unary(parser.GetTabla(x-1),parser.GetTabla(x));  :}
+	;
+	
+Op_Posfijo_Neg ::= DECREMENT:op {: int x = parser.InsTabla(op); parser.s.Oper(x,op); parser.s.eval_unary(parser.GetTabla(x-1),parser.GetTabla(x));  :}
+	;
+	
+Lista_var ::= Coma Literal_id Lista_var
+	| 
+	;
+Lista_parametros ::= Tipo Literal_id Coma Lista_parametros
+	| Tipo Literal_id
+	| Err
+	;  
+
+While ::= WhilePar  CondicionTest Rightpar  Sentencia {: parser.s.EndWhile(); :}
+	| WhilePar CondicionTest Rightpar  Leftbracket Rightbracket {: parser.s.EndWhile(); :}
+	;
+
+WhilePar ::= WHILE:ele1 LEFTPAR:ele2 {: parser.s.StartWhile(parser.InsTabla(ele1),ele1); parser.contador++; parser.InsTabla("test".concat(String.valueOf(parser.contador))); parser.s.Par(ele2); :}
+	;
+	
+Lista_sentencias ::=  Sentencia Lista_sentencias 
+	| Sentencia
+	;
+
+Sentencia ::= Write
+	| Op_PosfijaAritmetica
+	| Read
+	| Expresion_arit_init
+	| While
+	| If_else
+	| Return
+	;
+
+Return ::= Ret_tok Literal_num Semicolon {: parser.s.Ret();  :}
+	| Ret_tok Literal_id Semicolon {: parser.s.Ret();  :}
+	;
+	
+Read ::= Read_tok Leftpar Lista_id Rightpar Semicolon
+	| Read_tok Leftpar Rightpar Semicolon
+	;
+	
+Write ::= Write_tok Leftpar Expresion_arit Rightpar Semicolon
+	;
+
+If_else ::= If Else Sentencia  {: parser.s.EndIfElse(); :}
+	| If Else Leftbracket Lista_sentencias Rightbracket {: parser.s.EndIfElse(); :}
+	| If {: parser.s.EndIf(); :}
+	;
+
+If ::= IfPar CondicionTest Sentencia 
+	| IfPar CondicionTest Leftbracket Lista_sentencias Rightbracket
+	;
+	
+IfPar ::= IF:ele1 LEFTPAR:ele2 {: parser.s.StartIf(parser.InsTabla(ele1),ele1); parser.contador++; parser.InsTabla("test".concat(String.valueOf(parser.contador)));parser.s.Par(ele2); :}
+	;
+
+CondicionTest ::= Condicion:C RIGHTPAR:ele {:  ArrayList<String> lista = new ArrayList();
+									int num = parser.InsTabla(ele);
+									while (parser.GetTabla(num).equals("test".concat(String.valueOf(parser.contador)))!=true){
+									lista.add(parser.GetTabla(num));
+									num--;}
+									Collections.reverse(lista);
+									parser.s.Par(ele);
+                                    parser.s.Test(lista);
+									:}
+	;
+	
+Condicion ::= Condicion_logica  
+	| Condicion_and
+	| Condicion_or
+	| Condicion_not
+	| Leftpar Condicion_logica  Rightpar 
+	| Leftpar Condicion_and Rightpar 
+	| Leftpar Condicion_or Rightpar 
+	| Leftpar Condicion_not Rightpar 
+	| Err
+	;
+
+Condicion_and ::= Condicion_logica  And Condicion 
+	;
+
+
+Condicion_or ::= Condicion_logica Or Condicion 
+	; 
+
+Condicion_not ::= Not Condicion 
+	;
+
+Condicion_logica ::= Expresion_arit Greater Expresion_arit 
+	| Expresion_arit Less Expresion_arit 
+	| Expresion_arit Greatereq Expresion_arit 
+	| Expresion_arit Lesseq Expresion_arit 
+	| Expresion_arit Eq Expresion_arit 
+	| Expresion_arit Noteq Expresion_arit 
+	| False
+	| True
+	;
+
+Op_aritmeticos ::= ADDITION:op {: parser.flagop=true;parser.s.Oper(parser.InsTabla(op),op);  :}
+	| SUBTRACTION:op {: parser.flagop=true;parser.s.Oper(parser.InsTabla(op),op);  :}
+	| MULTIPLICATION:op {: parser.flagop=true;parser.s.Oper(parser.InsTabla(op),op);  :}
+	| DIVISION:op {: parser.flagop=true;parser.s.Oper(parser.InsTabla(op),op);  :}
+	| MODULO:op {: parser.flagop=true;parser.s.Oper(parser.InsTabla(op),op);  :}
+	;
+	
+Oper_aritmeticas ::= Literal_num Op_aritmeticos Literal_num 
+	| Literal_num Op_aritmeticos Literal_id
+	| Literal_id Op_aritmeticos Literal_num 
+	| Literal_id Op_aritmeticos Literal_id
+	;
+
+Expresion_arit ::=	Expresion_arit Op_aritmeticos  Expresion_arit
+	| Leftpar Expresion_arit Rightpar
+	| Oper_aritmeticas 
+	| Literal_num 
+	| Literal_id
+	| Err
+	;
+
+Expresion_arit_init ::=	Literal_id Assign Expresion_arit  Semicolon {: parser.s.Assig();  :}
+	| Err
+	;
+	
+Err ::= error
+	;
+

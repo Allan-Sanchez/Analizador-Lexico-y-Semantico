@@ -1,0 +1,49 @@
+
+int loop ()
+{
+int resultado;
+int temp;
+if (resultado == 1 + 2)
+    {
+        L = temp;
+		resultado  = 2 + 4;
+		
+    }
+	return L;
+}
+void sumador(int x,int y)
+{
+int q = 0;
+resultado  = 2 + y;
+y++;
+return L;
+}
+
+int loop ()
+{
+int a;
+if (a >= 2 + 5)
+    {
+        L = temp;
+		resultado  = 2 + y;
+    }
+else{L = temp;}
+}
+int loop ()
+{
+if (b >= 3)
+    {
+        L = temp;
+		resultado  = 2 + y;
+    }
+else{L = temp;}
+}
+int loop ()
+{
+if (c >= 4)
+    {
+        L = temp;
+		resultado  = 2 + y;
+    }
+else{L = temp;}
+}
